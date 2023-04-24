@@ -1,0 +1,17 @@
+phonemes:
+    C:
+        nasal       {m n ŋ}
+        stop        {p b t d k g}
+        fricative   {s h}
+        trill       {r}
+        approximant {w l j}
+
+        voiced      {m n ŋ b d g r w l j}
+        voiceless   {p t k s h}
+    H: {C[nasal], C[approximant]}
+    V:
+        front       {i e}
+        center      {a ə}
+        back        {u o}
+syllable-struct: (C)(C)V(H)
+word-length: 3

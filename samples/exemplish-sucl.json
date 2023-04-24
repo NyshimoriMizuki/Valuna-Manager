@@ -1,0 +1,9 @@
+{
+    "phonemes": {
+        "C": ["m", "n", "ŋ", "p", "b", "t", "d", "k", "g", "s", "h", "r", "w", "l", "j"],
+        "H": ["m", "n", "ŋ", "w", "l", "j"],
+        "V": ["i" ,"e" ,"a" ,"ə" ,"u" ,"o"]
+    },
+    "syllable-struct": "(C)(C)V(H)",
+    "word-length": 3
+}

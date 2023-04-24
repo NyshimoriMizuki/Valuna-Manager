@@ -1,0 +1,8 @@
+a → e / j_
+a → e
+w j → gʷ ʒ
+{a i u} -> ∅ / _#
+
+j(i) -> i / C_
+Ci -> Cʲ / _V
+Cu Cw -> Cʷ Cʷ / _V
