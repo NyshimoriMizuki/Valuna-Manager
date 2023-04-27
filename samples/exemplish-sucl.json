@@ -4,6 +4,6 @@
         "H": ["m", "n", "ŋ", "w", "l", "j"],
         "V": ["i" ,"e" ,"a" ,"ə" ,"u" ,"o"]
     },
-    "syllable-struct": "(C)(C)V(H)",
-    "word-length": 3
+    "syllable_struct": "(C)(C)V(H)",
+    "word_length": 3
 }

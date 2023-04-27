@@ -2,6 +2,8 @@ mod phex;
 mod setupcl;
 mod wordgen;
 
+use setupcl::SetupCL;
+
 fn main() {
-    println!("Hello, world!");
+    let test = SetupCL::from_json("samples/exemplish-sucl.json");
 }
