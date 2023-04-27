@@ -7,9 +7,9 @@ use wordgen::WordGenerator;
 
 fn main() {
     let setup = SetupCL::from_json("samples/exemplish-sucl.json");
-    let generator = WordGenerator::new(&setup);
+    let mut generator = WordGenerator::new(&setup);
 
     setup.break_syllable_struct();
 
-    println!("{:?}", generator.gen_syllable());
+    println!("{:?}", generator.gen_words(5));
 }
