@@ -2,14 +2,18 @@ mod phex;
 mod setupcl;
 mod wordgen;
 
-use setupcl::SetupCL;
-use wordgen::WordGenerator;
+// use setupcl::SetupCL;
+// use wordgen::WordGenerator;
+
+const TEST_PHEX_THINGS: bool = true;
 
 fn main() {
-    let setup = SetupCL::from_json("samples/exemplish-sucl.json");
-    let mut generator = WordGenerator::new(&setup);
+    if TEST_PHEX_THINGS {
+        phex::Phex::teste();
+    }
 
-    setup.break_syllable_struct();
+    // let setup = SetupCL::from_json("samples/exemplish-sucl.json");
+    // let mut generator = WordGenerator::new(&setup);
 
-    println!("{:?}", generator.gen_words(5));
+    // println!("{:?}", generator.gen_words(5));
 }

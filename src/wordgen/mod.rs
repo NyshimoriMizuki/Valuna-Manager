@@ -40,21 +40,21 @@ impl WordGenerator {
     }
 
     fn gen_syllable(&self) -> String {
-        let mut building_syllable = String::new();
+        let mut new_syllable = String::new();
 
         for group in self.setup.break_syllable_struct() {
             match group {
-                GroupOption::Obl(g) => building_syllable.push_str(&self.get_a_phoneme(&g)),
+                GroupOption::Obl(g) => new_syllable.push_str(&self.get_a_phoneme(&g)),
                 GroupOption::Opt(g) => {
                     if isnt_to_jump() {
-                        building_syllable.push_str(&self.get_a_phoneme(&g));
+                        new_syllable.push_str(&self.get_a_phoneme(&g));
                     } else {
                         continue;
                     }
                 }
             }
         }
-        building_syllable
+        new_syllable
     }
 
     fn get_a_phoneme(&self, group: &str) -> String {
