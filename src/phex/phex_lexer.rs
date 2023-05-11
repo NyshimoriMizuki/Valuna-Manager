@@ -2,7 +2,7 @@ use std::str::Chars;
 
 const EOF_CHAR: char = '\0';
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PhexLexer<'a> {
     code: Chars<'a>,
     tokens: Vec<Token>,
@@ -16,6 +16,10 @@ impl<'a> PhexLexer<'a> {
             tokens: Vec::new(),
             last_token: Token::SOF,
         }
+    }
+
+    pub fn get_token(&self) -> Vec<Token> {
+        self.tokens.clone()
     }
 
     pub fn tokenize(&mut self) {
@@ -36,11 +40,24 @@ impl<'a> PhexLexer<'a> {
         };
 
         let new_token = match current_char {
+            c if c == '\'' || c == '"' => {
+                let mut comment = String::new();
+                loop {
+                    if self.first() != c && self.first() != '\0' {
+                        println!("-{}-", self.first());
+                        comment.push_str(&self.next_char().unwrap().to_string());
+                    } else {
+                        self.next_char();
+                        break;
+                    }
+                }
+                Token::Comment(comment)
+            }
             c if is_phoneme_or_keyword(c) => {
                 let mut phoneme_or_keyword = String::from(c);
                 loop {
                     if is_phoneme_or_keyword(self.first()) {
-                        phoneme_or_keyword.push_str(&self.next_char().unwrap().to_string())
+                        phoneme_or_keyword.push_str(&self.next_char().unwrap().to_string());
                     } else {
                         break;
                     }
@@ -55,8 +72,13 @@ impl<'a> PhexLexer<'a> {
                     Token::Operator('-'.to_string())
                 }
             }
-            c if c.is_uppercase() => return Token::Group(c.to_string()),
+            c if c == '\r' && self.first() == '\n' => {
+                self.next_char();
+                Token::NewLine
+            }
+            c if c.is_uppercase() => Token::Group(c.to_string()),
             c if is_operator(c) => Token::Operator(c.to_string()),
+            '→' | '>' => Token::Operator('→'.to_string()),
             '∅' | '*' => Token::Null,
             ' ' | '\t' => Token::WhiteSpace,
             '\n' => Token::NewLine,
@@ -83,9 +105,10 @@ impl<'a> PhexLexer<'a> {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-enum Token {
+pub enum Token {
     PhonemeOrKeyword(String),
     Group(String),
+    Comment(String),
     Operator(String), //  → # _ + - /
     Null,             // ∅ or *
     LParam,           // (
@@ -111,8 +134,8 @@ fn is_operator(char_: char) -> bool {
 fn is_phoneme_or_keyword(char_: char) -> bool {
     match char_ {
         c if c.is_whitespace() || c.is_uppercase() => false,
-        '-' | '>' | '→' | ',' | '/' | '∅' | '*' | '+' | '(' | ')' | '{' | '}' | '[' | ']' | '<'
-        | '&' | '@' | '%' | '#' | '!' | '|' | '$' | '_' => false,
+        '-' | '>' | '→' | ',' | '/' | '∅' | '*' | '+' | '{' | '}' | '[' | ']' | '<' | '&' | '@'
+        | '%' | '#' | '!' | '|' | '$' | '_' | '\0' => false,
         _ => true,
     }
 }
