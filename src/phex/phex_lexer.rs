@@ -18,7 +18,7 @@ impl<'a> PhexLexer<'a> {
         }
     }
 
-    pub fn get_token(&self) -> Vec<Token> {
+    pub fn get_tokens(&self) -> Vec<Token> {
         self.tokens.clone()
     }
 
@@ -76,7 +76,6 @@ impl<'a> PhexLexer<'a> {
                 self.next_char();
                 Token::NewLine
             }
-            c if c.is_uppercase() => Token::Group(c.to_string()),
             c if is_operator(c) => Token::Operator(c.to_string()),
             '→' | '>' => Token::Operator('→'.to_string()),
             '∅' | '*' => Token::Null,
@@ -104,10 +103,9 @@ impl<'a> PhexLexer<'a> {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Token {
     PhonemeOrKeyword(String),
-    Group(String),
     Comment(String),
     Operator(String), //  → # _ + - /
     Null,             // ∅ or *
@@ -138,4 +136,9 @@ fn is_phoneme_or_keyword(char_: char) -> bool {
         | '%' | '#' | '!' | '|' | '$' | '_' | '\0' => false,
         _ => true,
     }
+}
+
+pub struct Tokens {
+    items: Vec<Token>,
+    index: u32,
 }

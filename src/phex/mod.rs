@@ -6,19 +6,19 @@ use phex_parser::PhexParser;
 
 use std::fs;
 
-pub struct Phex<'a> {
+pub struct PhexReader<'a> {
     raw_file: String,
     lexer: PhexLexer<'a>,
     parser: PhexParser,
-    expressions: Vec<PhexExpression>,
+    expressions: Vec<Phex>,
 }
 
-impl Phex<'_> {
-    pub fn new(phex_file: &String) -> Phex<'_> {
-        Phex {
+impl<'a> PhexReader<'a> {
+    pub fn new(&self, phex_file: &'a String) -> PhexReader<'a> {
+        PhexReader {
             raw_file: phex_file.to_string(),
             lexer: PhexLexer::new(phex_file),
-            parser: PhexParser,
+            parser: PhexParser::new(),
             expressions: Vec::new(),
         }
     }
@@ -28,11 +28,17 @@ impl Phex<'_> {
         let mut lexer = PhexLexer::new(&source);
         lexer.tokenize();
 
-        println!("{:?}", lexer);
+        let mut parser = PhexParser::new();
+        parser.load_tokens(&lexer.get_tokens());
+        parser.parse();
+
+        println!("{:?}", parser.get_expressions());
     }
 }
-struct PhexExpression {
-    left: &'static str,
-    right: &'static str,
-    case: &'static str,
+
+#[derive(Debug, Clone)]
+pub struct Phex {
+    left: String,
+    right: String,
+    case: String,
 }
