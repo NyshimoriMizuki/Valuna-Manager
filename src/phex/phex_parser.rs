@@ -64,6 +64,7 @@ impl PhexParser {
                     Token::WhiteSpace => tokens_to_node.push(PhexNode::Space),
                     Token::NewLine => tokens_to_node.push(PhexNode::NewLine),
                     Token::EOF => tokens_to_node.push(PhexNode::EOF),
+                    Token::Null => tokens_to_node.push(PhexNode::Phoneme("∅".to_string())),
                     _ => continue,
                 }
 
@@ -118,7 +119,7 @@ impl PhexParser {
                 };
                 let case = build_case(splited.get(2).unwrap());
 
-                let expression = super::Phex { left, right, case };
+                let expression = super::Phex::new(left, right, case);
                 self.expressions.push(expression);
             }
         }
