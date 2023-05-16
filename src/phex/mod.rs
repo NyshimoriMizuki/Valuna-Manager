@@ -13,9 +13,9 @@ pub struct PhexReader<'a> {
 }
 
 impl<'a> PhexReader<'a> {
-    pub fn new(&self, phex_file: &'a String) -> PhexReader<'a> {
+    pub fn new(phex_text: &'a str) -> PhexReader<'a> {
         PhexReader {
-            lexer: PhexLexer::new(phex_file),
+            lexer: PhexLexer::new(phex_text),
             parser: PhexParser::new(),
             expressions: Vec::new(),
         }
@@ -40,10 +40,6 @@ impl<'a> PhexReader<'a> {
             new_words.push((word.to_string(), current_word));
         }
         new_words
-    }
-
-    pub fn change_file(&mut self, filename: &'a str) {
-        self.lexer = PhexLexer::new(filename);
     }
 }
 

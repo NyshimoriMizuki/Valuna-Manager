@@ -4,7 +4,7 @@ const EOF_CHAR: char = '\0';
 
 #[derive(Debug, Clone)]
 pub struct PhexLexer<'a> {
-    code: Chars<'a>,
+    pub(super) code: Chars<'a>,
     tokens: Vec<Token>,
     last_token: Token,
 }
