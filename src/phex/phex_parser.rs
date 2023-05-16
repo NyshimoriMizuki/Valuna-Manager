@@ -125,8 +125,11 @@ impl PhexParser {
         }
     }
 
-    pub fn get_expressions(&self) -> Vec<super::Phex> {
-        self.expressions.clone()
+    pub fn get_and_clear_expressions(&mut self) -> Vec<super::Phex> {
+        let exprs = self.expressions.clone();
+        self.expressions = Vec::new();
+
+        exprs
     }
 
     fn split_in_lines(&mut self) -> Vec<Vec<Token>> {

@@ -5,10 +5,8 @@ use phex_lexer::PhexLexer;
 use phex_parser::PhexParser;
 
 use regex::Regex;
-use std::fs;
 
 pub struct PhexReader<'a> {
-    raw_file: String,
     lexer: PhexLexer<'a>,
     parser: PhexParser,
     expressions: Vec<Phex>,
@@ -17,30 +15,35 @@ pub struct PhexReader<'a> {
 impl<'a> PhexReader<'a> {
     pub fn new(&self, phex_file: &'a String) -> PhexReader<'a> {
         PhexReader {
-            raw_file: phex_file.to_string(),
             lexer: PhexLexer::new(phex_file),
             parser: PhexParser::new(),
             expressions: Vec::new(),
         }
     }
-    pub fn teste() {
-        let source = fs::read_to_string("./samples/teste.phex").expect("Error on reading");
 
-        let mut lexer = PhexLexer::new(&source);
-        lexer.tokenize();
+    pub fn read(&mut self) {
+        self.lexer.tokenize();
+        self.parser.load_tokens(&self.lexer.get_tokens());
+        self.parser.parse();
 
-        let mut parser = PhexParser::new();
-        parser.load_tokens(&lexer.get_tokens());
-        parser.parse();
+        self.expressions = self.parser.get_and_clear_expressions();
+    }
 
-        let targets = vec!["aho", "kaho", "paho", "ao", "kow", "luw", "amwu", "qauwuij"];
-        for word in targets {
-            let mut result = String::from(word);
-            for i in parser.get_expressions() {
-                result = i.run(&result);
+    pub fn run_all(&self, base_words: &Vec<String>) -> Vec<(String, String)> {
+        let mut new_words: Vec<(String, String)> = Vec::new();
+
+        for word in base_words {
+            let mut current_word = word.to_string();
+            for phex in &self.expressions {
+                current_word = phex.run(&current_word);
             }
-            println!("{word} -> {result}");
+            new_words.push((word.to_string(), current_word));
         }
+        new_words
+    }
+
+    pub fn change_file(&mut self, filename: &'a str) {
+        self.lexer = PhexLexer::new(filename);
     }
 }
 

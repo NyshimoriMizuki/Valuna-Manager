@@ -2,24 +2,17 @@ mod phex;
 mod setupcl;
 mod word;
 
+mod repl;
+
 use setupcl::SetupCL;
 use word::WordGenerator;
 
 use std::fs;
 
-const TEST_PHEX_THINGS: bool = true;
+const VERSION: &str = "0.0.1";
 
 fn main() {
-    if TEST_PHEX_THINGS {
-        phex::PhexReader::teste();
-    }
-
-    let setup = SetupCL::from_json("samples/exemplish-sucl.json");
-    let mut generator = WordGenerator::new(&setup);
-
-    println!("{:?}", generator.gen_words(5));
-
-    // using();
+    repl::Repl::new(VERSION).run();
 }
 
 #[allow(dead_code)]
