@@ -1,5 +1,6 @@
-mod phex_lexer;
+pub mod phex_lexer;
 mod phex_parser;
+mod token;
 
 use phex_lexer::PhexLexer;
 use phex_parser::PhexParser;
@@ -23,8 +24,7 @@ impl<'a> PhexReader<'a> {
 
     pub fn read(&mut self) {
         self.lexer.tokenize();
-        self.parser.load_tokens(&self.lexer.get_tokens());
-        self.parser.parse();
+        self.parser.parse(&self.lexer.get_tokens());
 
         self.expressions = self.parser.get_and_clear_expressions();
     }

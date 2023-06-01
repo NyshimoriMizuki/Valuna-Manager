@@ -1,3 +1,4 @@
+use super::token::Token;
 use std::str::Chars;
 
 const EOF_CHAR: char = '\0';
@@ -41,28 +42,14 @@ impl<'a> PhexLexer<'a> {
 
         let new_token = match current_char {
             c if c == '\'' || c == '"' => {
-                let mut comment = String::new();
-                loop {
-                    if self.first() != c && self.first() != '\0' {
-                        println!("-{}-", self.first());
-                        comment.push_str(&self.next_char().unwrap().to_string());
-                    } else {
-                        self.next_char();
-                        break;
-                    }
-                }
-                Token::Comment(comment)
+                Token::Comment(self.build_large_value(c, &|x| x != c && x != '\0') + &c.to_string())
             }
-            c if is_phoneme_or_keyword(c) => {
-                let mut phoneme_or_keyword = String::from(c);
-                loop {
-                    if is_phoneme_or_keyword(self.first()) {
-                        phoneme_or_keyword.push_str(&self.next_char().unwrap().to_string());
-                    } else {
-                        break;
-                    }
-                }
-                Token::PhonemeOrKeyword(phoneme_or_keyword)
+            c if c.is_uppercase() => {
+                Token::Identifier(self.build_large_value(c, &|x| is_group_or_key(x)))
+            }
+            c if is_phoneme(c) => {
+                // comment only to break a line
+                Token::Phoneme(self.build_large_value(c, &|x| is_phoneme(x)))
             }
             '-' => {
                 if self.first() == '>' {
@@ -101,25 +88,18 @@ impl<'a> PhexLexer<'a> {
         let c = self.code.next()?;
         Some(c)
     }
-}
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Token {
-    PhonemeOrKeyword(String),
-    Comment(String),
-    Operator(String), //  → # _ + - /
-    Null,             // ∅ or *
-    LParam,           // (
-    RParam,           // )
-    LBracket,         // {
-    RBracket,         // }
-    LBrace,           // [
-    RBrace,           // ]
-    WhiteSpace,       //
-    NewLine,          //
-    SOF,              // Start of file
-    EOF,              // End of file
-    Unknown(String),
+    fn build_large_value(&mut self, start_char: char, f: &dyn Fn(char) -> bool) -> String {
+        let mut building = String::from(start_char);
+        loop {
+            if f(self.first()) {
+                building.push_str(&self.next_char().unwrap().to_string());
+            } else {
+                break;
+            }
+        }
+        building
+    }
 }
 
 fn is_operator(char_: char) -> bool {
@@ -129,7 +109,7 @@ fn is_operator(char_: char) -> bool {
     }
 }
 
-fn is_phoneme_or_keyword(char_: char) -> bool {
+fn is_phoneme(char_: char) -> bool {
     match char_ {
         c if c.is_whitespace() || c.is_uppercase() => false,
         '-' | '>' | '→' | ',' | '/' | '∅' | '*' | '+' | '{' | '}' | '[' | ']' | '<' | '&' | '@'
@@ -138,7 +118,11 @@ fn is_phoneme_or_keyword(char_: char) -> bool {
     }
 }
 
-pub struct Tokens {
-    items: Vec<Token>,
-    index: u32,
+fn is_group_or_key(char_: char) -> bool {
+    match char_ {
+        c if c.is_whitespace() => false,
+        '-' | '>' | '→' | ',' | '/' | '∅' | '*' | '+' | '{' | '}' | '[' | ']' | '<' | '&' | '@'
+        | '%' | '#' | '!' | '|' | '$' | '_' | '\0' => false,
+        _ => true,
+    }
 }

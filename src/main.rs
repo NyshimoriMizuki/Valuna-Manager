@@ -2,17 +2,17 @@ mod phex;
 mod setupcl;
 mod word;
 
-mod repl;
-
 use setupcl::SetupCL;
 use word::WordGenerator;
 
 use std::fs;
 
-const VERSION: &str = "0.0.1";
-
 fn main() {
-    repl::Repl::new(VERSION).run();
+    let file_content = fs::read_to_string("samples/teste.phex").expect("Error on reading");
+
+    let mut lexer = phex::phex_lexer::PhexLexer::new(&file_content);
+    lexer.tokenize();
+    println!("{:?}", lexer.get_tokens());
 }
 
 #[allow(dead_code)]

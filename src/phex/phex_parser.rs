@@ -1,11 +1,10 @@
 use regex::Regex;
 use std::collections::HashMap;
 
-use super::phex_lexer::Token;
+use super::token::Token;
 
 #[derive(Debug)]
 pub struct PhexParser {
-    tokens: Vec<Token>,
     phoneme_groups: HashMap<String, Vec<String>>,
     expressions: Vec<super::Phex>,
 }
@@ -13,18 +12,13 @@ pub struct PhexParser {
 impl PhexParser {
     pub fn new() -> PhexParser {
         PhexParser {
-            tokens: Vec::new(),
             phoneme_groups: HashMap::new(),
             expressions: Vec::new(),
         }
     }
 
-    pub fn load_tokens(&mut self, tokens: &Vec<Token>) {
-        self.tokens = tokens.clone();
-    }
-
-    pub fn parse(&mut self) {
-        for tokens in self.split_in_lines() {
+    pub fn parse(&mut self, tokens: &Vec<Token>) {
+        for tokens in self.split_in_lines(tokens) {
             let mut tokens_to_node: Vec<PhexNode> = Vec::new();
             let mut id = 0;
 
@@ -35,7 +29,7 @@ impl PhexParser {
                 };
 
                 match t {
-                    Token::PhonemeOrKeyword(c) => {
+                    Token::Phoneme(c) => {
                         tokens_to_node.push(PhexNode::PU(PhoneUnit::Single(c.to_string())))
                     }
                     Token::Operator(c) => tokens_to_node.push(match &c[..] {
@@ -55,7 +49,7 @@ impl PhexParser {
                             if *s == Token::RBracket {
                                 tokens_to_node.push(PhexNode::PU(PhoneUnit::Set(new_set)));
                                 break;
-                            } else if let Token::PhonemeOrKeyword(p) = s {
+                            } else if let Token::Phoneme(p) = s {
                                 new_set.push(p.to_string());
                             }
                             id += 1;
@@ -132,11 +126,11 @@ impl PhexParser {
         exprs
     }
 
-    fn split_in_lines(&mut self) -> Vec<Vec<Token>> {
+    fn split_in_lines(&self, tokens: &Vec<Token>) -> Vec<Vec<Token>> {
         let mut splitted: Vec<Vec<Token>> = Vec::new();
         let mut building_line: Vec<Token> = Vec::new();
 
-        for t in self.tokens.iter() {
+        for t in tokens.iter() {
             if *t == Token::NewLine || *t == Token::EOF {
                 if building_line.len() == 0 {
                     continue;
@@ -148,10 +142,6 @@ impl PhexParser {
             }
         }
         splitted
-    }
-
-    fn eat(&mut self) -> Token {
-        self.tokens.remove(0)
     }
 }
 
