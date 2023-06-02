@@ -44,13 +44,14 @@ impl<'a> PhexLexer<'a> {
             c if c == '\'' || c == '"' => {
                 Token::Comment(self.build_large_value(c, &|x| x != c && x != '\0') + &c.to_string())
             }
-            c if c.is_uppercase() => {
-                Token::Identifier(self.build_large_value(c, &|x| is_group_or_key(x)))
+            c if c.is_uppercase() && self.first().is_alphabetic() => {
+                Token::Identifier(self.build_large_value(c, &|x| is_phoneme_or_keyword(x)))
             }
-            c if is_phoneme(c) => {
+            c if is_phoneme_or_keyword(c) => {
                 // comment only to break a line
-                Token::Phoneme(self.build_large_value(c, &|x| is_phoneme(x)))
+                Token::Phoneme(self.build_large_value(c, &|x| is_phoneme_or_keyword(x)))
             }
+            c if c.is_uppercase() => Token::Group(c.to_string()),
             '-' => {
                 if self.first() == '>' {
                     self.next_char();
@@ -109,18 +110,9 @@ fn is_operator(char_: char) -> bool {
     }
 }
 
-fn is_phoneme(char_: char) -> bool {
+fn is_phoneme_or_keyword(char_: char) -> bool {
     match char_ {
         c if c.is_whitespace() || c.is_uppercase() => false,
-        '-' | '>' | '→' | ',' | '/' | '∅' | '*' | '+' | '{' | '}' | '[' | ']' | '<' | '&' | '@'
-        | '%' | '#' | '!' | '|' | '$' | '_' | '\0' => false,
-        _ => true,
-    }
-}
-
-fn is_group_or_key(char_: char) -> bool {
-    match char_ {
-        c if c.is_whitespace() => false,
         '-' | '>' | '→' | ',' | '/' | '∅' | '*' | '+' | '{' | '}' | '[' | ']' | '<' | '&' | '@'
         | '%' | '#' | '!' | '|' | '$' | '_' | '\0' => false,
         _ => true,

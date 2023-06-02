@@ -2,6 +2,7 @@
 pub enum Token {
     Phoneme(String),
     Identifier(String),
+    Group(String),
     Comment(String),
     Operator(String), //  → # _ + - /
     Null,             // ∅ or *

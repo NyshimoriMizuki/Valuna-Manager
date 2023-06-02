@@ -7,6 +7,7 @@ use super::token::Token;
 pub struct PhexParser {
     phoneme_groups: HashMap<String, Vec<String>>,
     expressions: Vec<super::Phex>,
+    id: usize,
 }
 
 impl PhexParser {
@@ -14,24 +15,24 @@ impl PhexParser {
         PhexParser {
             phoneme_groups: HashMap::new(),
             expressions: Vec::new(),
+            id: 0,
         }
     }
-
-    pub fn parse(&mut self, tokens: &Vec<Token>) {
-        for tokens in self.split_in_lines(tokens) {
+    pub fn parse(&mut self, list_of_tokens: &Vec<Token>) {
+        for tokens in self.split_in_lines(list_of_tokens) {
+            self.id = 0;
             let mut tokens_to_node: Vec<PhexNode> = Vec::new();
-            let mut id = 0;
+            println!("\n{:?}", tokens);
 
             loop {
-                let t = match tokens.get(id) {
+                let t = match tokens.get(self.id) {
                     Some(t) => t.clone(),
                     None => break,
                 };
+                self.id += 1;
 
                 match t {
-                    Token::Phoneme(c) => {
-                        tokens_to_node.push(PhexNode::PU(PhoneUnit::Single(c.to_string())))
-                    }
+                    Token::Phoneme(c) => tokens_to_node.push(PhexNode::Phoneme(make_optionals(&c))),
                     Token::Operator(c) => tokens_to_node.push(match &c[..] {
                         "/" => PhexNode::OperSlash,
                         "_" => PhexNode::OperPlaceholder,
@@ -40,20 +41,7 @@ impl PhexParser {
                         c => PhexNode::Unknown(c.to_string()),
                     }),
                     Token::LBracket => {
-                        let mut new_set: Vec<String> = Vec::new();
-                        loop {
-                            let s = match tokens.get(id) {
-                                Some(t) => t,
-                                None => break,
-                            };
-                            if *s == Token::RBracket {
-                                tokens_to_node.push(PhexNode::PU(PhoneUnit::Set(new_set)));
-                                break;
-                            } else if let Token::Phoneme(p) = s {
-                                new_set.push(p.to_string());
-                            }
-                            id += 1;
-                        }
+                        tokens_to_node.push(PhexNode::Set(self.build_str_set(&tokens)))
                     }
                     Token::WhiteSpace => tokens_to_node.push(PhexNode::Space),
                     Token::NewLine => tokens_to_node.push(PhexNode::NewLine),
@@ -61,28 +49,12 @@ impl PhexParser {
                     Token::Null => tokens_to_node.push(PhexNode::Phoneme("∅".to_string())),
                     _ => continue,
                 }
-
-                id += 1;
             }
-
-            let final_nodes: Vec<PhexNode> = {
-                let mut building_tokens_vector: Vec<PhexNode> = Vec::new();
-                for token in tokens_to_node {
-                    if let PhexNode::PU(c) = token {
-                        building_tokens_vector.push(match c {
-                            PhoneUnit::Single(s) => PhexNode::Phoneme(make_optionals(&s)),
-                            PhoneUnit::Set(s) => PhexNode::Set(make_set(&s)),
-                        });
-                    } else {
-                        building_tokens_vector.push(token);
-                    }
-                }
-                building_tokens_vector
-            };
+            println!("{:?}", tokens_to_node);
 
             let mut splited: Vec<Vec<PhexNode>> = Vec::new();
             let mut part: Vec<PhexNode> = Vec::new();
-            for i in final_nodes.into_iter() {
+            for i in tokens_to_node.into_iter() {
                 match i {
                     PhexNode::OperTo | PhexNode::OperSlash => {
                         splited.push(part);
@@ -98,6 +70,7 @@ impl PhexParser {
                 Some(_) => (),
                 None => splited.push(vec![PhexNode::OperPlaceholder]),
             }
+            println!("{:?}", splited);
             for (l, r) in splited
                 .get(0)
                 .unwrap()
@@ -119,14 +92,14 @@ impl PhexParser {
         }
     }
 
-    pub fn get_and_clear_expressions(&mut self) -> Vec<super::Phex> {
+    pub fn get_expressions(&mut self) -> Vec<super::Phex> {
         let exprs = self.expressions.clone();
         self.expressions = Vec::new();
 
         exprs
     }
 
-    fn split_in_lines(&self, tokens: &Vec<Token>) -> Vec<Vec<Token>> {
+    fn split_in_lines(&mut self, tokens: &Vec<Token>) -> Vec<Vec<Token>> {
         let mut splitted: Vec<Vec<Token>> = Vec::new();
         let mut building_line: Vec<Token> = Vec::new();
 
@@ -142,6 +115,24 @@ impl PhexParser {
             }
         }
         splitted
+    }
+
+    fn build_str_set(&mut self, tokens: &Vec<Token>) -> String {
+        let mut new_set: Vec<String> = Vec::new();
+        loop {
+            let s = match tokens.get(self.id) {
+                Some(t) => t,
+                None => break,
+            };
+            self.id += 1;
+
+            if *s == Token::RBracket {
+                break;
+            } else if let Token::Phoneme(p) = s {
+                new_set.push(p.to_string());
+            }
+        }
+        make_set(&new_set)
     }
 }
 
@@ -189,9 +180,10 @@ fn build_case(tokens: &Vec<PhexNode>) -> String {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum PhexNode {
-    PU(PhoneUnit),
     Set(String),
     Phoneme(String),
+    Group(String, String),
+    Identifier(String),
     OperTo,
     OperSlash,
     OperPlaceholder,
@@ -200,10 +192,4 @@ enum PhexNode {
     Space,
     EOF,
     Unknown(String),
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum PhoneUnit {
-    Single(String),
-    Set(Vec<String>),
 }

@@ -13,6 +13,9 @@ fn main() {
     let mut lexer = phex::phex_lexer::PhexLexer::new(&file_content);
     lexer.tokenize();
     println!("{:?}", lexer.get_tokens());
+
+    let mut parser = phex::phex_parser::PhexParser::new();
+    parser.parse(&lexer.get_tokens());
 }
 
 #[allow(dead_code)]

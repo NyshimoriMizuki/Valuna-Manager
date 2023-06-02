@@ -1,5 +1,5 @@
 pub mod phex_lexer;
-mod phex_parser;
+pub mod phex_parser;
 mod token;
 
 use phex_lexer::PhexLexer;
@@ -26,7 +26,7 @@ impl<'a> PhexReader<'a> {
         self.lexer.tokenize();
         self.parser.parse(&self.lexer.get_tokens());
 
-        self.expressions = self.parser.get_and_clear_expressions();
+        self.expressions = self.parser.get_expressions();
     }
 
     pub fn run_all(&self, base_words: &Vec<String>) -> Vec<(String, String)> {
